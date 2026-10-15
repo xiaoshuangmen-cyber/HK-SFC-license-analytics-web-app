@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SFC 持牌公司名单数据抓取系统</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <!-- Google Fonts Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="glass-bg-glow"></div>
+    <div class="app-container">
+        <header class="app-header">
+            <h1 id="app-title-main" class="gradient-text">SFC 持牌公司数据抓取系统</h1>
+            <p class="subtitle">通过直接调用 HKSFC 官方接口，自动化获取并本地化存储持牌公司名单</p>
+        </header>
+
+        <main class="grid-layout">
+            <!-- Left Panel: Configurations -->
+            <section class="card glass-card config-panel" aria-labelledby="config-heading">
+                <h2 id="config-heading" class="card-title">查询条件配置</h2>
+                
+                <!-- Cond 1: License status -->
+                <div class="form-group">
+                    <label class="form-label">1. 牌照/注册状况 (licstatus)</label>
+                    <div class="radio-group" id="licstatus-group">
+                        <label class="radio-label">
+                            <input type="radio" name="licstatus" value="active" checked id="status-active">
+                            <span class="custom-radio"></span>
+                            活跃
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio" name="licstatus" value="all" id="status-all">
+                            <span class="custom-radio"></span>
+                            全部
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Cond 2: Role Type -->
+                <div class="form-group">
+                    <label class="form-label">2. 牌照类别 (roleType)</label>
+                    <div class="radio-group" id="role-group">
+                        <label class="radio-label">
+                            <input type="radio" name="roleType" value="corporation" checked id="role-corp">
+                            <span class="custom-radio"></span>
+                            公司
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio" name="roleType" value="individual" id="role-indi">
+                            <span class="custom-radio"></span>
+                            个人
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Cond 3: RA Type (Multiselect) -->
+                <div class="form-group">
+                    <label class="form-label">3. 《证券及期货条例》下的牌照 (支持多选)</label>
+                    <div class="ratype-grid" id="ratypes-container">
+                        <label class="checkbox-label-pill checked">
+                            <input type="checkbox" name="ratypes" value="1" checked>
+                            <span class="pill-number">1</span>证券交易
+                        </label>
+                        <label class="checkbox-label-pill">
+                            <input type="checkbox" name="ratypes" value="2">
+                            <span class="pill-number">2</span>期货合约
+                        </label>
+                        <label class="checkbox-label-pill">
+                            <input type="checkbox" name="ratypes" value="3">
+                            <span class="pill-number">3</span>外汇交易
+                        </label>
+                        <label class="checkbox-label-pill">
+                            <input type="checkbox" name="ratypes" value="4">
+                            <span class="pill-number">4</span>证券意见
+                        </label>
+                        <label class="checkbox-label-pill">
+                            <input type="checkbox" name="ratypes" value="5">
+                            <span class="pill-number">5</span>期货意见
+                        </label>
+                        <label class="checkbox-label-pill">
+                            <input type="checkbox" name="ratypes" value="6">
+                            <span class="pill-number">6</span>机构融资
+                        </label>
+                        <label class="checkbox-label-pill">
+                            <input type="checkbox" name="ratypes" value="7">
+                            <span class="pill-number">7</span>自动化交易
+                        </label>
+                        <label class="checkbox-label-pill">
+                            <input type="checkbox" name="ratypes" value="8">
+                            <span class="pill-number">8</span>保证金融资
+                        </label>
+                        <label class="checkbox-label-pill">
+                            <input type="checkbox" name="ratypes" value="9">
+                            <span class="pill-number">9</span>资产管理
+                        </label>
+                        <label class="checkbox-label-pill">
+                            <input type="checkbox" name="ratypes" value="10">
+                            <span class="pill-number">10</span>信贷评级
+                        </label>
+                        <label class="checkbox-label-pill">
+                            <input type="checkbox" name="ratypes" value="13">
+                            <span class="pill-number">13</span>存管服务
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Cond 4: Name Start Letter -->
+                <div class="form-group">
+                    <label class="form-label">4. 名字的开头 (nameStartLetter)</label>
+                    <div class="search-type-toggle">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="search-all-letters" checked>
+                            <span class="custom-checkbox"></span>
+                            一键全量抓取 (A-Z, 0-9)
+                        </label>
+                    </div>
+                    
+                    <div id="single-letter-container" class="letter-select-container hidden">
+                        <label for="single-letter-select" class="sub-label">选择单个首字母/数字:</label>
+                        <select id="single-letter-select" class="form-select">
+                            <!-- Letters A-Z -->
+                            <option value="A">A</option><option value="B">B</option><option value="C">C</option>
+                            <option value="D">D</option><option value="E">E</option><option value="F">F</option>
+                            <option value="G">G</option><option value="H">H</option><option value="I">I</option>
+                            <option value="J">J</option><option value="K">K</option><option value="L">L</option>
+                            <option value="M">M</option><option value="N">N</option><option value="O">O</option>
+                            <option value="P">P</option><option value="Q">Q</option><option value="R">R</option>
+                            <option value="S">S</option><option value="T">T</option><option value="U">U</option>
+                            <option value="V">V</option><option value="W">W</option><option value="X">X</option>
+                            <option value="Y">Y</option><option value="Z">Z</option>
+                            <!-- Numbers 0-9 -->
+                            <option value="0">0</option><option value="1">1</option><option value="2">2</option>
+                            <option value="3">3</option><option value="4">4</option><option value="5">5</option>
+                            <option value="6">6</option><option value="7">7</option><option value="8">8</option>
+                            <option value="9">9</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- List Thread Count Configuration -->
+                <div class="form-group">
+                    <label class="form-label" for="list-thread-count-slider">5. 名单页并发检索线程数 (1 - 10)</label>
+                    <div style="display: flex; align-items: center; gap: 12px; margin-top: 8px;">
+                        <input type="range" id="list-thread-count-slider" min="1" max="10" value="10" style="flex: 1; height: 6px; border-radius: 3px; background: rgba(255,255,255,0.1); outline: none; -webkit-appearance: none; accent-color: var(--primary);">
+                        <span id="list-thread-count-display" style="font-size: 1.1rem; font-weight: bold; width: 30px; text-align: right; color: var(--primary-glow);">10</span>
+                    </div>
+                </div>
+
+                <!-- Thread Count Configuration -->
+                <div class="form-group">
+                    <label class="form-label" for="thread-count-slider">6. 详情页并行抓取线程数 (10 - 50)</label>
+                    <div style="display: flex; align-items: center; gap: 12px; margin-top: 8px;">
+                        <input type="range" id="thread-count-slider" min="10" max="50" value="20" style="flex: 1; height: 6px; border-radius: 3px; background: rgba(255,255,255,0.1); outline: none; -webkit-appearance: none; accent-color: var(--primary);">
+                        <span id="thread-count-display" style="font-size: 1.1rem; font-weight: bold; width: 30px; text-align: right; color: var(--primary-glow);">20</span>
+                    </div>
+                </div>
+
+                <div class="action-buttons" style="display: flex; gap: 12px;">
+                    <button type="button" id="btn-start" class="btn btn-primary btn-glow" style="flex: 1;">开始抓取数据</button>
+                    <button type="button" id="btn-stop" class="btn btn-danger" style="flex: 1;" disabled>停止抓取</button>
+                </div>
+            </section>
+
+            <!-- Right Panel: Logs and Output -->
+            <section class="right-column">
+                <!-- Task Progress -->
+                <div class="card glass-card progress-panel">
+                    <h2 class="card-title">抓取状态与日志</h2>
+                    
+                    <div class="progress-bar-container">
+                        <div id="progress-bar" class="progress-bar" style="width: 0%"></div>
+                    </div>
+                    
+                    <div class="status-summary">
+                        <span class="status-badge" id="task-status-badge">空闲</span>
+                        <span class="status-text" id="task-status-text">就绪，等待启动...</span>
+                    </div>
+
+                    <div class="log-console" id="log-console">
+                        <div class="log-line system-line">[SYSTEM] 系统已加载。请配置条件后点击“开始抓取”。</div>
+                    </div>
+                </div>
+
+                <!-- Generated Excel Files -->
+                <div class="card glass-card files-panel">
+                    <h2 class="card-title">本地已存储的 Excel</h2>
+                    <div class="files-table-container">
+                        <table class="files-table" id="files-table" aria-label="Generated Excel files">
+                            <thead>
+                                <tr>
+                                    <th scope="col">文件名</th>
+                                    <th scope="col">文件大小</th>
+                                    <th scope="col">创建时间</th>
+                                    <th scope="col">操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="files-tbody">
+                                <tr>
+                                    <td colspan="4" class="no-data">正在加载文件列表...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>

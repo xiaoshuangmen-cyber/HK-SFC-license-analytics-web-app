@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>香港 SFC 持牌公司历年/月度新拿牌与趋势分析大屏</title>
+  
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- 样式遵循 SYSTEM_DESIGN_RULES.md -->
+  <link rel="stylesheet" href="analytics.css">
+
+  <!-- 核心基础库：SheetJS (Excel解析) & Apache ECharts (图表可视化) & Lucide 图标 -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.js"></script>
+</head>
+<body>
+  <!-- 背景氛围发光光晕 -->
+  <div class="ambient-glow"></div>
+
+  <div class="app-container">
+    <!-- 顶部导航与操作栏 -->
+    <header class="header-wrapper">
+      <div>
+        <div class="brand-badge">
+          <span class="dot"></span>
+          <span>HKSFC REGULATORY INTELLIGENCE</span>
+        </div>
+        <h1 class="page-title">
+          香港 SFC 持牌公司 <span class="gradient-text">新拿牌分析与趋势大屏</span>
+        </h1>
+        <p class="page-subtitle">
+          深度追踪自 2003 年《证券及期货条例》实施以来，全港 3,600+ 持牌法团的按年、按月获牌节奏与行业周期变迁
+        </p>
+      </div>
+
+      <div class="header-actions">
+        <input type="file" id="file-input" accept=".xlsx, .xls">
+        <button id="upload-btn" class="btn btn-primary">
+          <i data-lucide="upload-cloud" style="width: 16px; height: 16px;"></i>
+          导入 Excel 文件
+        </button>
+        <button id="reset-btn" class="btn btn-secondary">
+          <i data-lucide="rotate-ccw" style="width: 16px; height: 16px;"></i>
+          重置默认数据
+        </button>
+        <button id="vercel-guide-btn" class="btn btn-secondary">
+          <i data-lucide="cloud" style="width: 16px; height: 16px;"></i>
+          部署到 Vercel
+        </button>
+      </div>
+    </header>
+
+    <!-- 拖拽上传 / 数据源状态面板 -->
+    <section class="glass-card data-source-banner">
+      <div class="ds-info">
+        <div class="ds-tag">
+          <i data-lucide="file-spreadsheet" style="width: 14px; height: 14px; color: var(--primary-cyan);"></i>
+          <span>当前数据源：<strong id="current-file-badge">SFC_持牌公司名单_20261015_161728.xlsx</strong></span>
+        </div>
+        <div class="ds-tag">
+          <i data-lucide="database" style="width: 14px; height: 14px; color: var(--primary-emerald);"></i>
+          <span>持牌机构量：<strong id="current-count-badge">3,672 家</strong></span>
+        </div>
+        <div class="ds-tag">
+          <i data-lucide="clock" style="width: 14px; height: 14px; color: #9CA3AF;"></i>
+          <span>基准时间：<span id="current-time-badge">2026-10-15 16:17</span></span>
+        </div>
+      </div>
+      <div class="ds-controls">
+        <span style="font-size: 0.75rem; color: var(--text-secondary);">支持拖拽更新的 Excel 文件随时覆盖分析</span>
+      </div>
+    </section>
+
+    <!-- 可视化拖拽上传区域 -->
+    <div id="upload-dropzone" class="upload-dropzone">
+      <div class="dropzone-content">
+        <i data-lucide="file-up" class="dropzone-icon"></i>
+        <div class="dropzone-text">点击或拖拽新的 SFC 持牌公司 Excel 表单到此处</div>
+        <div class="dropzone-subtext">自动识别中央编号、1号/9号拿牌时间、牌照类型等全部字段，纯前端瞬时解析安全无泄露</div>
+      </div>
+    </div>
+
+    <!-- 核心 KPI 指标网格 -->
+    <section class="kpi-grid">
+      <div class="glass-card kpi-card">
+        <div class="kpi-header">
+          <span class="kpi-title">持牌公司总数</span>
+          <div class="kpi-icon"><i data-lucide="building-2" style="width: 16px; height: 16px;"></i></div>
+        </div>
+        <div class="kpi-value" id="kpi-total-companies">3,672</div>
+        <div class="kpi-footer">
+          <span class="trend-badge trend-up">●</span> 活跃受监管法人机构
+        </div>
+      </div>
+
+      <div class="glass-card kpi-card">
+        <div class="kpi-header">
+          <span class="kpi-title">1号牌 (证券交易)</span>
+          <div class="kpi-icon"><i data-lucide="trending-up" style="width: 16px; height: 16px;"></i></div>
+        </div>
+        <div class="kpi-value" id="kpi-type1-count">1,622</div>
+        <div class="kpi-footer">
+          <span>经纪及券商基础牌照</span>
+        </div>
+      </div>
+
+      <div class="glass-card kpi-card">
+        <div class="kpi-header">
+          <span class="kpi-title">9号牌 (资产管理)</span>
+          <div class="kpi-icon"><i data-lucide="briefcase" style="width: 16px; height: 16px;"></i></div>
+        </div>
+        <div class="kpi-value" id="kpi-type9-count">2,534</div>
+        <div class="kpi-footer">
+          <span>公募/私募/对冲资管主力</span>
+        </div>
+      </div>
+
+      <div class="glass-card kpi-card">
+        <div class="kpi-header">
+          <span class="kpi-title">1+9号 双牌旗舰机构</span>
+          <div class="kpi-icon"><i data-lucide="shield-check" style="width: 16px; height: 16px;"></i></div>
+        </div>
+        <div class="kpi-value" id="kpi-both-count">1,310</div>
+        <div class="kpi-footer">
+          <span>券商+资管全能综合体</span>
+        </div>
+      </div>
+
+      <div class="glass-card kpi-card">
+        <div class="kpi-header">
+          <span class="kpi-title">历史拿牌高峰年</span>
+          <div class="kpi-icon"><i data-lucide="award" style="width: 16px; height: 16px;"></i></div>
+        </div>
+        <div class="kpi-value" id="kpi-peak-year">2025年 (238家)</div>
+        <div class="kpi-footer">
+          <span>新入场机构数峰值</span>
+        </div>
+      </div>
+
+      <div class="glass-card kpi-card">
+        <div class="kpi-header">
+          <span class="kpi-title">2026年内新获批</span>
+          <div class="kpi-icon"><i data-lucide="calendar" style="width: 16px; height: 16px;"></i></div>
+        </div>
+        <div class="kpi-value" id="kpi-recent-count">195 家</div>
+        <div class="kpi-footer">
+          <span class="trend-badge trend-up">稳健上行</span> 截至 10 月最新
+        </div>
+      </div>
+
+      <div class="glass-card kpi-card">
+        <div class="kpi-header">
+          <span class="kpi-title">虚拟资产 (VA) 机构</span>
+          <div class="kpi-icon"><i data-lucide="coins" style="width: 16px; height: 16px;"></i></div>
+        </div>
+        <div class="kpi-value" id="kpi-va-count">56</div>
+        <div class="kpi-footer">
+          <span>Web3/数字资产创新牌照</span>
+        </div>
+      </div>
+
+      <div class="glass-card kpi-card">
+        <div class="kpi-header">
+          <span class="kpi-title">资产受限机构比例</span>
+          <div class="kpi-icon"><i data-lucide="lock" style="width: 16px; height: 16px;"></i></div>
+        </div>
+        <div class="kpi-value" id="kpi-noasset-ratio">42.8%</div>
+        <div class="kpi-footer">
+          <span>不得持有客户资产(轻资产)</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 交互过滤控制栏 -->
+    <section class="glass-card filter-bar">
+      <div class="filter-group">
+        <span class="filter-label">牌照范围：</span>
+        <select id="filter-license-type" class="select-control">
+          <option value="all">全量持牌公司 (3,600+)</option>
+          <option value="type1">包含 1 号牌 (证券交易)</option>
+          <option value="type9">包含 9 号牌 (资产管理)</option>
+          <option value="both">同时持有 1+9 号双牌机构</option>
+          <option value="bank">银行系附属券商/资管</option>
+          <option value="no_asset">不得持有客户资产机构 (受限投顾)</option>
+          <option value="va">涉足虚拟资产 (VA) 业务</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <span class="filter-label">统计拿牌口径：</span>
+        <select id="filter-date-metric" class="select-control">
+          <option value="df">首次获发牌照时间 (企业入场)</option>
+          <option value="d1">1号牌（证券交易）拿牌时间</option>
+          <option value="d9">9号牌（资产管理）拿牌时间</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <span class="filter-label">时间周期跨度：</span>
+        <div class="segmented-control">
+          <button class="segmented-btn active" data-span="all">历史全部</button>
+          <button class="segmented-btn" data-span="10y">近 10 年</button>
+          <button class="segmented-btn" data-span="5y">近 5 年</button>
+          <button class="segmented-btn" data-span="3y">近 3 年</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 第一排图表：年度宏观走势 & 1号 vs 9号牌对比 -->
+    <section class="chart-section grid-2col">
+      <!-- 历年新发牌照总数量走势复合图 -->
+      <div class="glass-card chart-card">
+        <div class="chart-header">
+          <div class="chart-title-wrap">
+            <h2 class="chart-title">历年新拿牌公司数量走势与累计增长</h2>
+            <p class="chart-desc">呈现各自然年度新批复持牌法团数量 (柱状) 及累计持牌法团存量总规模 (折线)</p>
+          </div>
+        </div>
+        <div id="chart-annual-trend" class="chart-container"></div>
+      </div>
+
+      <!-- 1号牌 vs 9号牌 历年新拿牌对比 -->
+      <div class="glass-card chart-card">
+        <div class="chart-header">
+          <div class="chart-title-wrap">
+            <h2 class="chart-title">1号券商牌 vs 9号资管牌 历年获批对比</h2>
+            <p class="chart-desc">揭示香港从传统证券经纪到全球资产管理中心的战略重心变迁历程</p>
+          </div>
+        </div>
+        <div id="chart-compare-trend" class="chart-container"></div>
+      </div>
+    </section>
+
+    <!-- 第二排图表：高精度月度时间序列走势 -->
+    <section class="chart-section">
+      <div class="glass-card chart-card">
+        <div class="chart-header">
+          <div class="chart-title-wrap">
+            <h2 class="chart-title">月度新拿牌公司数量高精度趋势 (Monthly Granularity)</h2>
+            <p class="chart-desc">展现月度审批获批波峰波谷，附带 3 个月移动平均线 (3-MA) 平滑趋势，支持底部滑块拖拽缩放</p>
+          </div>
+        </div>
+        <div id="chart-monthly-trend" class="chart-container"></div>
+      </div>
+    </section>
+
+    <!-- 第三排图表：结构分布与季节性 -->
+    <section class="chart-section grid-2col">
+      <!-- 牌照类型组合结构 -->
+      <div class="glass-card chart-card">
+        <div class="chart-header">
+          <div class="chart-title-wrap">
+            <h2 class="chart-title">持牌类别组合分布格局</h2>
+            <p class="chart-desc">综合双牌 (1+9号) 与单一核心牌照持牌机构分布比例</p>
+          </div>
+        </div>
+        <div id="chart-license-pie" class="chart-container chart-container-sm"></div>
+      </div>
+
+      <!-- 证监会审批季节性规律 -->
+      <div class="glass-card chart-card">
+        <div class="chart-header">
+          <div class="chart-title-wrap">
+            <h2 class="chart-title">历史发牌月份季节性规律 (1~12月)</h2>
+            <p class="chart-desc">历年各月份累计获批公司总数分布，揭示监管机构全年审批周期节奏</p>
+          </div>
+        </div>
+        <div id="chart-seasonality-bar" class="chart-container chart-container-sm"></div>
+      </div>
+    </section>
+
+    <!-- 第四排：公司明细透视与分页数据表格 -->
+    <section class="glass-card table-section">
+      <div class="table-toolbar">
+        <div>
+          <h2 class="chart-title">持牌公司明细名录与全维度透视</h2>
+          <p class="chart-desc">支持实时检索中央编号、公司中英文名，点击“详情”查看完整活动及 SFC 官网公示</p>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+          <div class="search-box-wrap">
+            <i data-lucide="search" class="search-icon" style="width: 14px; height: 14px;"></i>
+            <input type="text" id="table-search-input" class="input-control" placeholder="搜索公司名、中央编号...">
+          </div>
+
+          <div style="display: flex; align-items: center; gap: 0.35rem;">
+            <span style="font-size: 0.75rem; color: var(--text-secondary);">单页显示:</span>
+            <select id="page-size-select" class="select-control" style="padding: 0.35rem 0.6rem;">
+              <option value="10">10条</option>
+              <option value="15" selected>15条</option>
+              <option value="20">20条</option>
+              <option value="50">50条</option>
+            </select>
+          </div>
+
+          <button id="export-csv-btn" class="btn btn-secondary">
+            <i data-lucide="download" style="width: 14px; height: 14px;"></i>
+            导出 CSV
+          </button>
+        </div>
+      </div>
+
+      <div class="table-container">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th style="width: 110px;">中央编号</th>
+              <th>公司名称 (中 / 英)</th>
+              <th style="width: 170px;">持有主要牌照</th>
+              <th style="width: 130px;">1号牌拿牌时间</th>
+              <th style="width: 130px;">9号牌拿牌时间</th>
+              <th style="width: 140px;">机构属性</th>
+              <th style="width: 80px; text-align: center;">操作</th>
+            </tr>
+          </thead>
+          <tbody id="table-body">
+            <!-- 动态渲染 -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- 分页控件规范 -->
+      <div class="pagination-wrap">
+        <div id="pagination-info" class="pagination-info">
+          加载中...
+        </div>
+        <div id="pagination-controls" class="pagination-controls">
+          <!-- 动态渲染分页按钮 -->
+        </div>
+      </div>
+    </section>
+
+    <!-- 页脚 -->
+    <footer style="text-align: center; color: var(--text-muted); font-size: 0.75rem; margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid rgba(255, 255, 255, 0.05);">
+      <p>香港证监会 (HKSFC) 持牌公司数据智能分析系统 · 数据源自香港证监会公众纪录册公开信息</p>
+      <p style="margin-top: 4px;">本页面为纯静态架构 (SPA)，支持任意 Excel 表格导入，支持零配置快速部署至 Vercel</p>
+    </footer>
+  </div>
+
+  <!-- 详情与说明模态框 (Modal) -->
+  <div id="modal-overlay" class="modal-overlay">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="modal-title" class="modal-title">详情</h3>
+        <button id="modal-close" class="modal-close">&times;</button>
+      </div>
+      <div id="modal-body">
+        <!-- 动态内容 -->
+      </div>
+    </div>
+  </div>
+
+  <!-- 预置真实数据脚本 -->
+  <script src="default_data.js"></script>
+  <!-- 主业务逻辑与图表引擎 -->
+  <script src="analytics.js"></script>
+</body>
+</html>

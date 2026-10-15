@@ -1,0 +1,14 @@
+# Python
+venv/
+__pycache__/
+*.pyc
+*.pyo
+.DS_Store
+
+# Temporary scratch
+scratch/
+sfc_default_data.json
+sfc_lean_data.json
+
+# Local env
+.env
