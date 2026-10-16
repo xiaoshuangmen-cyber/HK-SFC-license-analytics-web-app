@@ -138,6 +138,15 @@ body {
   flex-wrap: wrap;
 }
 
+.header-secret-trigger {
+  flex: 1;
+  max-width: 600px;
+  min-width: 240px;
+  min-height: 64px;
+  cursor: default;
+  user-select: none;
+}
+
 /* 统一按钮体系 */
 .btn {
   display: inline-flex;
@@ -262,8 +271,9 @@ body {
   display: none;
 }
 
-/* 拖拽上传展示区 (可折叠或常驻) */
+/* 拖拽上传展示区 (默认隐藏，连击3次后显示) */
 .upload-dropzone {
+  display: none;
   border: 2px dashed rgba(6, 182, 212, 0.35);
   background: rgba(6, 182, 212, 0.02);
   border-radius: var(--radius-card);
@@ -272,6 +282,22 @@ body {
   margin-bottom: 2rem;
   cursor: pointer;
   transition: var(--transition-smooth);
+}
+
+.upload-dropzone.visible {
+  display: block;
+  animation: dropzoneFadeIn 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes dropzoneFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .upload-dropzone:hover, .upload-dropzone.dragover {

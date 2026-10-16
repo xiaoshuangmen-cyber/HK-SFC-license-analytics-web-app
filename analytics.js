@@ -82,6 +82,33 @@ function initEventListeners() {
     });
   }
 
+  // 连击右上角空白区域 3 次切换展示/隐藏 Excel 上传模块
+  const secretTrigger = document.getElementById('header-secret-trigger');
+  let secretClickCount = 0;
+  let secretClickTimer = null;
+
+  if (secretTrigger && dropzone) {
+    secretTrigger.addEventListener('click', () => {
+      secretClickCount++;
+      clearTimeout(secretClickTimer);
+      secretClickTimer = setTimeout(() => {
+        secretClickCount = 0;
+      }, 1200); // 1.2 秒内连续点击 3 次
+
+      if (secretClickCount >= 3) {
+        secretClickCount = 0;
+        clearTimeout(secretClickTimer);
+        const isVisible = dropzone.classList.toggle('visible');
+        if (isVisible) {
+          showToast('已开启 Excel 数据导入模块', 'info');
+          dropzone.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        } else {
+          showToast('已隐藏 Excel 数据导入模块', 'info');
+        }
+      }
+    });
+  }
+
   if (resetBtn) {
     resetBtn.addEventListener('click', () => {
       loadInitialData();
