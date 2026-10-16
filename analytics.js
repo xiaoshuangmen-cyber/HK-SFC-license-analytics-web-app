@@ -453,9 +453,9 @@ function renderAnnualChart() {
       top: 0
     },
     grid: {
-      left: '3%',
-      right: '4%',
-      bottom: '10%',
+      left: '2%',
+      right: '2%',
+      bottom: '8%',
       top: '15%',
       containLabel: true
     },
@@ -463,7 +463,13 @@ function renderAnnualChart() {
       type: 'category',
       data: years,
       axisLine: { lineStyle: { color: 'rgba(255, 255, 255, 0.15)' } },
-      axisLabel: { color: '#9CA3AF' }
+      axisTick: { alignWithLabel: true },
+      axisLabel: {
+        color: '#9CA3AF',
+        interval: 0,
+        fontSize: 12,
+        margin: 12
+      }
     },
     yAxis: [
       {
@@ -485,7 +491,7 @@ function renderAnnualChart() {
       {
         name: '新获批持牌公司数',
         type: 'bar',
-        barMaxWidth: 28,
+        barMaxWidth: 32,
         itemStyle: {
           borderRadius: [6, 6, 0, 0],
           color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
@@ -497,7 +503,8 @@ function renderAnnualChart() {
           show: true,
           position: 'top',
           color: '#38BDF8',
-          fontSize: 10
+          fontSize: 11,
+          fontWeight: 500
         },
         data: yearlyCounts
       },
@@ -576,9 +583,9 @@ function renderCompareChart() {
       top: 0
     },
     grid: {
-      left: '3%',
-      right: '4%',
-      bottom: '10%',
+      left: '2%',
+      right: '2%',
+      bottom: '8%',
       top: '15%',
       containLabel: true
     },
@@ -586,7 +593,13 @@ function renderCompareChart() {
       type: 'category',
       data: years,
       axisLine: { lineStyle: { color: 'rgba(255, 255, 255, 0.15)' } },
-      axisLabel: { color: '#9CA3AF' }
+      axisTick: { alignWithLabel: true },
+      axisLabel: {
+        color: '#9CA3AF',
+        interval: 0,
+        fontSize: 12,
+        margin: 12
+      }
     },
     yAxis: {
       type: 'value',
@@ -599,20 +612,33 @@ function renderCompareChart() {
       {
         name: '1号牌 (证券交易)',
         type: 'bar',
-        barMaxWidth: 16,
+        barMaxWidth: 20,
+        barGap: '15%',
         itemStyle: {
           borderRadius: [4, 4, 0, 0],
           color: '#38BDF8'
+        },
+        label: {
+          show: true,
+          position: 'top',
+          color: '#38BDF8',
+          fontSize: 10
         },
         data: t1Data
       },
       {
         name: '9号牌 (资产管理)',
         type: 'bar',
-        barMaxWidth: 16,
+        barMaxWidth: 20,
         itemStyle: {
           borderRadius: [4, 4, 0, 0],
           color: '#10B981'
+        },
+        label: {
+          show: true,
+          position: 'top',
+          color: '#34D399',
+          fontSize: 10
         },
         data: t9Data
       }
