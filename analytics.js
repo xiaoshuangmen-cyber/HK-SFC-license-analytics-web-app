@@ -344,11 +344,40 @@ function updateSourceBadge() {
   if (timeBadge) timeBadge.textContent = AppState.lastUpdateTime;
 }
 
+// 排序函数：优先级 1: 1号牌拿牌时间(最新优先)，优先级 2: 9号牌拿牌时间(最新优先)
+function sortRecordsByLicenseDate(records) {
+  return [...records].sort((a, b) => {
+    // 优先级 1: 1号牌拿牌时间降序 (d1)
+    const d1_a = a.d1 || '';
+    const d1_b = b.d1 || '';
+    if (d1_a && d1_b) {
+      if (d1_a !== d1_b) return d1_b.localeCompare(d1_a);
+    } else if (d1_a && !d1_b) {
+      return -1;
+    } else if (!d1_a && d1_b) {
+      return 1;
+    }
+
+    // 优先级 2: 9号牌拿牌时间降序 (d9)
+    const d9_a = a.d9 || '';
+    const d9_b = b.d9 || '';
+    if (d9_a && d9_b) {
+      if (d9_a !== d9_b) return d9_b.localeCompare(d9_a);
+    } else if (d9_a && !d9_b) {
+      return -1;
+    } else if (!d9_a && d9_b) {
+      return 1;
+    }
+
+    return (a.c || '').localeCompare(b.c || '');
+  });
+}
+
 // 统一过滤与全量图表渲染
 function applyFiltersAndRender() {
   const typeFilter = AppState.filterLicenseType;
 
-  AppState.filteredRecords = AppState.rawRecords.filter(item => {
+  const matched = AppState.rawRecords.filter(item => {
     if (typeFilter === 'type1' && (!item.d1 || !item.l.includes('1'))) return false;
     if (typeFilter === 'type9' && (!item.d9 || !item.l.includes('9'))) return false;
     if (typeFilter === 'both' && (!item.d1 || !item.d9)) return false;
@@ -357,6 +386,9 @@ function applyFiltersAndRender() {
     if (typeFilter === 'va' && item.va !== 1) return false;
     return true;
   });
+
+  // 严格按优先级：1号牌拿牌时间、9号牌拿牌时间降序排序（最新在最前）
+  AppState.filteredRecords = sortRecordsByLicenseDate(matched);
 
   renderKPIs();
   renderAnnualChart();
@@ -1204,6 +1236,12 @@ git push -u origin main</div>
 
 // 导出当前筛选过滤后的 CSV
 function exportFilteredCSV() {
+  const exportBtn = document.getElementById('export-csv-btn');
+  if (exportBtn && exportBtn.disabled) {
+    showToast('导出功能暂未开放', 'info');
+    return;
+  }
+
   const records = AppState.filteredRecords;
   if (!records || records.length === 0) {
     showToast('无可用数据可供导出', 'warning');

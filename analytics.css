@@ -207,6 +207,18 @@ body {
   font-size: 0.75rem;
 }
 
+/* 禁用置灰按钮规范 */
+.btn:disabled, .btn[disabled] {
+  opacity: 0.42;
+  cursor: not-allowed;
+  pointer-events: none;
+  background: rgba(255, 255, 255, 0.03) !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+  color: var(--text-muted) !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
 /* 毛玻璃卡片通用规范 */
 .glass-card {
   background: var(--card-bg);
